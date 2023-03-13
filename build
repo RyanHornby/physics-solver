@@ -1,0 +1,3 @@
+cd src
+cobc -x main.cob
+mv main ../
