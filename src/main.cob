@@ -10,16 +10,21 @@
        FILE SECTION.
         FD PROBLEMS.
         01 PROBLEM.
-           02 VELOCITY-INITIAL PIC 9(4)V99.
-           02 ACCELERATION PIC 9(4)V99.
-           02 TOTAL-TIME PIC 9(4)V99.
+           02 PROBLEM-TYPE PIC 99.
+           02 VAL-ONE   PIC 9(4)V99.
+           02 VAL-TWO   PIC 9(4)V99.
+           02 VAL-THREE PIC 9(4)V99.
        WORKING-STORAGE SECTION.
+        01 VELOCITY-INITIAL PIC 9(4)V99.
+        01 TOTAL-TIME PIC 9(4)V99.
+        01 ACCELERATION PIC 9(4)V99.
+        01 DISTANCE PIC 9(4)V99.
         01 INTERMEDIATE-VAL-ONE PIC 9(8)V99.
         01 INTERMEDIATE-VAL-TWO PIC 9(8)V99.
         01 RESULT.
-           02 DISTANCE PIC 9(8)V99.
+           02 FINAL-VAL PIC 9(8)V99.
         01 END-FILE PIC X.
-           88 EOF VALUE "T".
+           88 EOF VALUE "Y".
        PROCEDURE DIVISION.
        BEGIN.
            PERFORM PROGRAM-INIT.
@@ -30,16 +35,33 @@
            OPEN INPUT PROBLEMS.
        PROCESS-LINE.
            READ PROBLEMS INTO PROBLEM
-               AT END MOVE "T" TO END-FILE.
+               AT END MOVE "Y" TO END-FILE.
            IF NOT EOF THEN
-               PERFORM CALC-DISTANCE
+               EVALUATE PROBLEM-TYPE
+                   WHEN 01 
+                       MOVE VAL-ONE TO VELOCITY-INITIAL
+                       MOVE VAL-TWO TO ACCELERATION
+                       MOVE VAL-THREE TO TOTAL-TIME     
+                       PERFORM CALC-DISTANCE
+                   WHEN 02
+                       MOVE VAL-ONE TO VELOCITY-INITIAL
+                       MOVE VAL-TWO TO DISTANCE
+                       MOVE VAL-THREE TO TOTAL-TIME
+                       PERFORM CALC-ACCELERATION
+               END-EVALUATE
                PERFORM PRINT-RESULTS
            END-IF.
        CALC-DISTANCE.
            COMPUTE INTERMEDIATE-VAL-ONE = VELOCITY-INITIAL * TOTAL-TIME.
            COMPUTE INTERMEDIATE-VAL-TWO = 0.5 * ACCELERATION *
                TOTAL-TIME * TOTAL-TIME.
-           COMPUTE DISTANCE = INTERMEDIATE-VAL-ONE + 
+           COMPUTE FINAL-VAL = INTERMEDIATE-VAL-ONE + 
+               INTERMEDIATE-VAL-TWO.
+       CALC-ACCELERATION.
+           COMPUTE INTERMEDIATE-VAL-ONE = DISTANCE - (VELOCITY-INITIAL -
+               TOTAL-TIME).
+           COMPUTE INTERMEDIATE-VAL-TWO = 2 / (TOTAL-TIME * TOTAL-TIME).
+           COMPUTE FINAL-VAL = INTERMEDIATE-VAL-ONE * 
                INTERMEDIATE-VAL-TWO.
        PRINT-RESULTS.
            DISPLAY RESULT.
